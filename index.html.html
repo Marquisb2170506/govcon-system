@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GovCon Command Center</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+        }
+        #root {
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+import React, { useState, useEffect } from 'react';
+import { Search, Plus, Building2, FileText, TrendingUp, DollarSign, Calendar, AlertCircle, CheckCircle, Clock, Users, Filter, Download, Upload, Mail, Phone, Award, Target, Briefcase, X, Edit2, Trash2, Eye, ChevronDown, ChevronRight } from 'lucide-react';
+
+// Main App Component
+const GovConSystem = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [opportunities, setOpportunities] = useState([]);
+  const [subcontractors, setSubs] = useState([]);
+  const [proposals, setProposals] = useState([]);
+  const [showModal, setShowModal] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+
+  // Initialize with sample data
+  useEffect(() => {
+    initializeSampleData();
+  }, []);
+
+  const initializeSampleData = () => {
+    setOpportunities([
+      {
+        id: 'OPP001',
+        title: 'IT Support Services - VA Medical Center',
+        agency: 'Department of Veterans Affairs',
+        naics: '541512',
+        setAside: 'Small Business',
+        value: 245000,
+        deadline: '2026-02-15',
+        status: 'active',
+        description: 'Comprehensive IT support services for medical center operations',
+        postedDate: '2026-01-10',
+        solicitationNumber: 'VA-26-001-SOL'
+      },
+      {
+        id: 'OPP002',
+        title: 'Janitorial Services - Federal Building',
+        agency: 'General Services Administration',
+        naics: '561720',
+        setAside: '8(a)',
+        value: 180000,
+        deadline: '2026-01-28',
+        status: 'active',
+        description: 'Full-service janitorial and maintenance for federal office building',
+        postedDate: '2026-01-05',
+        solicitationNumber: 'GSA-26-045-SOL'
+      },
+      {
+        id: 'OPP003',
+        title: 'Security Guard Services',
+        agency: 'Department of Homeland Security',
+        naics: '561612',
+        setAside: 'SDVOSB',
+        value: 225000,
+        deadline: '2026-02-20',
+        status: 'tracking',
+        description: 'Armed and unarmed security services for DHS facility',
+        postedDate: '2026-01-12',
+        solicitationNumber: 'DHS-26-089-SOL'
+      }
+    ]);
+
+    setSubs([
+      {
+        id: 'SUB001',
+        name: 'TechPro Solutions LLC',
+        capabilities: ['IT Support', 'Cybersecurity', 'Network Administration'],
+        certifications: ['ISO 9001', 'SOC 2'],
+        contact: 'John Smith',
+        email: 'jsmith@techpro.com',
+        phone: '555-0101',
+        pastPerformance: 'Excellent',
+        rating: 5,
+        availability: 'Available',
+        naicsCodes: ['541512', '541519']
+      },
+      {
+        id: 'SUB002',
+        name: 'CleanSweep Commercial Services',
+        capabilities: ['Janitorial', 'Facilities Maintenance', 'Ground Maintenance'],
+        certifications: ['ISSA Certified', 'Green Seal'],
+        contact: 'Maria Garcia',
+        email: 'mgarcia@cleansweep.com',
+        phone: '555-0102',
+        pastPerformance: 'Good',
+        rating: 4,
+        availability: 'Available',
+        naicsCodes: ['561720', '561730']
+      },
+      {
+        id: 'SUB003',
+        name: 'Guardian Security Group',
+        capabilities: ['Armed Security', 'Unarmed Security', 'Access Control'],
+        certifications: ['State Licensed', 'ASIS Certified'],
+        contact: 'Robert Johnson',
+        email: 'rjohnson@guardian.com',
+        phone: '555-0103',
+        pastPerformance: 'Excellent',
+        rating: 5,
+        availability: 'Limited',
+        naicsCodes: ['561612', '561613']
+      }
+    ]);
+
+    setProposals([
+      {
+        id: 'PROP001',
+        opportunityId: 'OPP001',
+        opportunityTitle: 'IT Support Services - VA Medical Center',
+        subcontractorId: 'SUB001',
+        status: 'draft',
+        createdDate: '2026-01-14',
+        submissionDeadline: '2026-02-15',
+        value: 245000,
+        winProbability: 70,
+        notes: 'Strong technical approach, competitive pricing'
+      },
+      {
+        id: 'PROP002',
+        opportunityId: 'OPP002',
+        opportunityTitle: 'Janitorial Services - Federal Building',
+        subcontractorId: 'SUB002',
+        status: 'submitted',
+        createdDate: '2026-01-08',
+        submissionDeadline: '2026-01-28',
+        submittedDate: '2026-01-20',
+        value: 180000,
+        winProbability: 60,
+        notes: 'Competitive bid, good past performance'
+      }
+    ]);
+  };
+
+  // Filtering logic
+  const getFilteredOpportunities = () => {
+    let filtered = opportunities;
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(opp => opp.status === filterStatus);
+    }
+    if (searchTerm) {
+      filtered = filtered.filter(opp => 
+        opp.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        opp.agency.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        opp.naics.includes(searchTerm)
+      );
+    }
+    return filtered;
+  };
+
+  const getFilteredSubs = () => {
+    if (!searchTerm) return subcontractors;
+    return subcontractors.filter(sub =>
+      sub.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      sub.capabilities.some(cap => cap.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      sub.naicsCodes.some(code => code.includes(searchTerm))
+    );
+  };
+
+  // CRUD operations
+  const addOpportunity = (opp) => {
+    setOpportunities([...opportunities, { ...opp, id: `OPP${String(opportunities.length + 1).padStart(3, '0')}` }]);
+    setShowModal(null);
+  };
+
+  const addSubcontractor = (sub) => {
+    setSubs([...subcontractors, { ...sub, id: `SUB${String(subcontractors.length + 1).padStart(3, '0')}` }]);
+    setShowModal(null);
+  };
+
+  const addProposal = (prop) => {
+    setProposals([...proposals, { ...prop, id: `PROP${String(proposals.length + 1).padStart(3, '0')}` }]);
+    setShowModal(null);
+  };
+
+  const deleteOpportunity = (id) => {
+    setOpportunities(opportunities.filter(opp => opp.id !== id));
+  };
+
+  const deleteSubcontractor = (id) => {
+    setSubs(subcontractors.filter(sub => sub.id !== id));
+  };
+
+  const deleteProposal = (id) => {
+    setProposals(proposals.filter(prop => prop.id !== id));
+  };
+
+  // Dashboard metrics
+  const metrics = {
+    activeOpportunities: opportunities.filter(o => o.status === 'active').length,
+    totalValue: opportunities.reduce((sum, o) => sum + o.value, 0),
+    activeSubs: subcontractors.filter(s => s.availability === 'Available').length,
+    proposalsInProgress: proposals.filter(p => p.status === 'draft').length,
+    proposalsSubmitted: proposals.filter(p => p.status === 'submitted').length,
+    avgWinRate: proposals.length > 0 ? Math.round(proposals.reduce((sum, p) => sum + p.winProbability, 0) / proposals.length) : 0
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1629 100%)',
+      fontFamily: '"JetBrains Mono", "Courier New", monospace',
+      color: '#e0e7ff',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      {/* Animated background grid */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundImage: `
+          linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px)
+        `,
+        backgroundSize: '50px 50px',
+        zIndex: 0,
+        animation: 'gridSlide 20s linear infinite'
+      }} />
+
+      <style>{`
+        @keyframes gridSlide {
+          0% { transform: translate(0, 0); }
+          100% { transform: translate(50px, 50px); }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes slideInUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        .metric-card {
+          animation: slideInUp 0.5s ease-out;
+        }
+        .metric-card:nth-child(1) { animation-delay: 0.1s; }
+        .metric-card:nth-child(2) { animation-delay: 0.2s; }
+        .metric-card:nth-child(3) { animation-delay: 0.3s; }
+        .metric-card:nth-child(4) { animation-delay: 0.4s; }
+        .metric-card:nth-child(5) { animation-delay: 0.5s; }
+        .metric-card:nth-child(6) { animation-delay: 0.6s; }
+      `}</style>
+
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: '1600px', margin: '0 auto', padding: '20px' }}>
+        {/* Header */}
+        <header style={{
+          background: 'rgba(15, 23, 42, 0.8)',
+          backdropFilter: 'blur(20px)',
+          borderRadius: '16px',
+          padding: '24px 32px',
+          marginBottom: '32px',
+          border: '1px solid rgba(99, 102, 241, 0.2)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1 style={{
+                fontSize: '32px',
+                fontWeight: '700',
+                margin: 0,
+                background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                letterSpacing: '-0.5px'
+              }}>
+                GOVCON COMMAND CENTER
+              </h1>
+              <p style={{ margin: '8px 0 0 0', color: '#94a3b8', fontSize: '14px' }}>
+                Your Government Contracting Intelligence Platform
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button style={{
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 16px rgba(99, 102, 241, 0.4)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              onClick={() => setShowModal('opportunity')}>
+                <Plus size={18} /> Add Opportunity
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Navigation Tabs */}
+        <nav style={{
+          display: 'flex',
+          gap: '8px',
+          marginBottom: '24px',
+          background: 'rgba(15, 23, 42, 0.6)',
+          backdropFilter: 'blur(10px)',
+          padding: '8px',
+          borderRadius: '12px',
+          border: '1px solid rgba(99, 102, 241, 0.1)'
+        }}>
+          {[
+            { id: 'dashboard', label: 'Dashboard', icon: TrendingUp },
+            { id: 'opportunities', label: 'Opportunities', icon: Target },
+            { id: 'subcontractors', label: 'Subcontractors', icon: Building2 },
+            { id: 'proposals', label: 'Proposals', icon: FileText }
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                flex: 1,
+                padding: '12px 20px',
+                background: activeTab === tab.id 
+                  ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' 
+                  : 'transparent',
+                color: activeTab === tab.id ? 'white' : '#94a3b8',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}>
+              <tab.icon size={18} />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Dashboard View */}
+        {activeTab === 'dashboard' && (
+          <div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: '20px',
+              marginBottom: '32px'
+            }}>
+              <MetricCard 
+                icon={Target} 
+                label="Active Opportunities" 
+                value={metrics.activeOpportunities}
+                color="#6366f1"
+                delay={0.1}
+              />
+              <MetricCard 
+                icon={DollarSign} 
+                label="Total Pipeline Value" 
+                value={`$${(metrics.totalValue / 1000).toFixed(0)}K`}
+                color="#8b5cf6"
+                delay={0.2}
+              />
+              <MetricCard 
+                icon={Building2} 
+                label="Active Subcontractors" 
+                value={metrics.activeSubs}
+                color="#06b6d4"
+                delay={0.3}
+              />
+              <MetricCard 
+                icon={FileText} 
+                label="Proposals in Progress" 
+                value={metrics.proposalsInProgress}
+                color="#10b981"
+                delay={0.4}
+              />
+              <MetricCard 
+                icon={CheckCircle} 
+                label="Proposals Submitted" 
+                value={metrics.proposalsSubmitted}
+                color="#f59e0b"
+                delay={0.5}
+              />
+              <MetricCard 
+                icon={Award} 
+                label="Avg Win Probability" 
+                value={`${metrics.avgWinRate}%`}
+                color="#ec4899"
+                delay={0.6}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
+              <DataCard title="Recent Opportunities" icon={Target}>
+                {opportunities.slice(0, 3).map(opp => (
+                  <div key={opp.id} style={{
+                    padding: '16px',
+                    background: 'rgba(30, 41, 59, 0.5)',
+                    borderRadius: '8px',
+                    marginBottom: '12px',
+                    border: '1px solid rgba(99, 102, 241, 0.1)'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                      <h4 style={{ margin: 0, color: '#e0e7ff', fontSize: '14px', fontWeight: '600' }}>{opp.title}</h4>
+                      <StatusBadge status={opp.status} />
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '8px' }}>{opp.agency}</div>
+                    <div style={{ display: 'flex', gap: '16px', fontSize: '12px' }}>
+                      <span style={{ color: '#10b981' }}>${(opp.value / 1000).toFixed(0)}K</span>
+                      <span style={{ color: '#94a3b8' }}>Due: {opp.deadline}</span>
+                      <span style={{ color: '#818cf8' }}>NAICS: {opp.naics}</span>
+                    </div>
+                  </div>
+                ))}
+              </DataCard>
+
+              <DataCard title="Pipeline Status" icon={TrendingUp}>
+                <div style={{ padding: '20px 0' }}>
+                  <PipelineBar label="Active" count={metrics.activeOpportunities} total={opportunities.length} color="#6366f1" />
+                  <PipelineBar label="Tracking" count={opportunities.filter(o => o.status === 'tracking').length} total={opportunities.length} color="#8b5cf6" />
+                  <PipelineBar label="Awarded" count={opportunities.filter(o => o.status === 'awarded').length} total={opportunities.length} color="#10b981" />
+                </div>
+              </DataCard>
+            </div>
+          </div>
+        )}
+
+        {/* Opportunities View */}
+        {activeTab === 'opportunities' && (
+          <div>
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              marginBottom: '24px',
+              background: 'rgba(15, 23, 42, 0.6)',
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid rgba(99, 102, 241, 0.1)'
+            }}>
+              <div style={{ flex: 1, position: 'relative' }}>
+                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <input
+                  type="text"
+                  placeholder="Search opportunities..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 10px 10px 40px',
+                    background: 'rgba(30, 41, 59, 0.5)',
+                    border: '1px solid rgba(99, 102, 241, 0.2)',
+                    borderRadius: '8px',
+                    color: '#e0e7ff',
+                    fontSize: '14px',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                style={{
+                  padding: '10px 16px',
+                  background: 'rgba(30, 41, 59, 0.5)',
+                  border: '1px solid rgba(99, 102, 241, 0.2)',
+                  borderRadius: '8px',
+                  color: '#e0e7ff',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  cursor: 'pointer'
+                }}>
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="tracking">Tracking</option>
+                <option value="awarded">Awarded</option>
+                <option value="lost">Lost</option>
+              </select>
+            </div>
+
+            <div style={{
+              background: 'rgba(15, 23, 42, 0.8)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+              overflow: 'hidden'
+            }}>
+              {getFilteredOpportunities().map((opp, index) => (
+                <div key={opp.id} style={{
+                  padding: '20px 24px',
+                  borderBottom: index < getFilteredOpportunities().length - 1 ? '1px solid rgba(99, 102, 241, 0.1)' : 'none',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.05)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                        <h3 style={{ margin: 0, color: '#e0e7ff', fontSize: '16px', fontWeight: '600' }}>{opp.title}</h3>
+                        <StatusBadge status={opp.status} />
+                      </div>
+                      <div style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '8px' }}>{opp.agency}</div>
+                      <div style={{ color: '#64748b', fontSize: '12px', lineHeight: '1.6' }}>{opp.description}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', marginLeft: '20px' }}>
+                      <IconButton icon={Eye} onClick={() => setShowModal({ type: 'viewOpp', data: opp })} />
+                      <IconButton icon={Trash2} onClick={() => deleteOpportunity(opp.id)} color="#ef4444" />
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '24px', fontSize: '13px', flexWrap: 'wrap' }}>
+                    <InfoItem icon={DollarSign} label="Value" value={`$${(opp.value / 1000).toFixed(0)}K`} color="#10b981" />
+                    <InfoItem icon={Calendar} label="Deadline" value={opp.deadline} color="#f59e0b" />
+                    <InfoItem icon={Award} label="Set-Aside" value={opp.setAside} color="#8b5cf6" />
+                    <InfoItem icon={Briefcase} label="NAICS" value={opp.naics} color="#06b6d4" />
+                    <InfoItem icon={FileText} label="Solicitation" value={opp.solicitationNumber} color="#64748b" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Subcontractors View */}
+        {activeTab === 'subcontractors' && (
+          <div>
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              marginBottom: '24px',
+              background: 'rgba(15, 23, 42, 0.6)',
+              padding: '16px',
+              borderRadius: '12px',
+              border: '1px solid rgba(99, 102, 241, 0.1)'
+            }}>
+              <div style={{ flex: 1, position: 'relative' }}>
+                <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+                <input
+                  type="text"
+                  placeholder="Search subcontractors..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 10px 10px 40px',
+                    background: 'rgba(30, 41, 59, 0.5)',
+                    border: '1px solid rgba(99, 102, 241, 0.2)',
+                    borderRadius: '8px',
+                    color: '#e0e7ff',
+                    fontSize: '14px',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => setShowModal('subcontractor')}
+                style={{
+                  padding: '10px 20px',
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                <Plus size={18} /> Add Subcontractor
+              </button>
+            </div>
+
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
+              gap: '20px'
+            }}>
+              {getFilteredSubs().map(sub => (
+                <div key={sub.id} style={{
+                  background: 'rgba(15, 23, 42, 0.8)',
+                  backdropFilter: 'blur(20px)',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  border: '1px solid rgba(99, 102, 241, 0.2)',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = '0 12px 24px rgba(99, 102, 241, 0.2)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
+                    <div>
+                      <h3 style={{ margin: 0, color: '#e0e7ff', fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>{sub.name}</h3>
+                      <div style={{
+                        display: 'inline-block',
+                        padding: '4px 12px',
+                        background: sub.availability === 'Available' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                        color: sub.availability === 'Available' ? '#10b981' : '#f59e0b',
+                        borderRadius: '6px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        textTransform: 'uppercase'
+                      }}>
+                        {sub.availability}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <IconButton icon={Eye} onClick={() => setShowModal({ type: 'viewSub', data: sub })} size={16} />
+                      <IconButton icon={Trash2} onClick={() => deleteSubcontractor(sub.id)} color="#ef4444" size={16} />
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '600' }}>Capabilities</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {sub.capabilities.map((cap, i) => (
+                        <span key={i} style={{
+                          padding: '4px 10px',
+                          background: 'rgba(99, 102, 241, 0.2)',
+                          color: '#818cf8',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: '500'
+                        }}>
+                          {cap}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', marginBottom: '8px', fontWeight: '600' }}>NAICS Codes</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      {sub.naicsCodes.map((code, i) => (
+                        <span key={i} style={{
+                          padding: '4px 10px',
+                          background: 'rgba(6, 182, 212, 0.2)',
+                          color: '#06b6d4',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontFamily: 'monospace'
+                        }}>
+                          {code}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ borderTop: '1px solid rgba(99, 102, 241, 0.1)', paddingTop: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8' }}>
+                        <Users size={14} />
+                        <span>{sub.contact}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8' }}>
+                        <Mail size={14} />
+                        <span>{sub.email}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8' }}>
+                        <Phone size={14} />
+                        <span>{sub.phone}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#64748b', marginBottom: '4px' }}>Past Performance</div>
+                      <div style={{ fontSize: '13px', color: '#10b981', fontWeight: '600' }}>{sub.pastPerformance}</div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i} style={{
+                          color: i < sub.rating ? '#f59e0b' : '#334155',
+                          fontSize: '14px'
+                        }}>★</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Proposals View */}
+        {activeTab === 'proposals' && (
+          <div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              marginBottom: '24px'
+            }}>
+              <button
+                onClick={() => setShowModal('proposal')}
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 16px rgba(99, 102, 241, 0.4)'
+                }}>
+                <Plus size={18} /> Create Proposal
+              </button>
+            </div>
+
+            <div style={{
+              background: 'rgba(15, 23, 42, 0.8)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(99, 102, 241, 0.2)',
+              overflow: 'hidden'
+            }}>
+              {proposals.map((prop, index) => {
+                const opportunity = opportunities.find(o => o.id === prop.opportunityId);
+                const sub = subcontractors.find(s => s.id === prop.subcontractorId);
+                
+                return (
+                  <div key={prop.id} style={{
+                    padding: '24px',
+                    borderBottom: index < proposals.length - 1 ? '1px solid rgba(99, 102, 241, 0.1)' : 'none'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px' }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                          <h3 style={{ margin: 0, color: '#e0e7ff', fontSize: '16px', fontWeight: '600' }}>{prop.opportunityTitle}</h3>
+                          <ProposalStatusBadge status={prop.status} />
+                        </div>
+                        <div style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '8px' }}>
+                          Subcontractor: {sub?.name || 'Unknown'}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <IconButton icon={Eye} onClick={() => setShowModal({ type: 'viewProposal', data: prop })} />
+                        <IconButton icon={Trash2} onClick={() => deleteProposal(prop.id)} color="#ef4444" />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+                      <InfoItem icon={DollarSign} label="Value" value={`$${(prop.value / 1000).toFixed(0)}K`} color="#10b981" />
+                      <InfoItem icon={Calendar} label="Deadline" value={prop.submissionDeadline} color="#f59e0b" />
+                      <InfoItem icon={TrendingUp} label="Win Probability" value={`${prop.winProbability}%`} color="#6366f1" />
+                      <InfoItem icon={Clock} label="Created" value={prop.createdDate} color="#64748b" />
+                    </div>
+
+                    {prop.notes && (
+                      <div style={{
+                        background: 'rgba(30, 41, 59, 0.5)',
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(99, 102, 241, 0.1)',
+                        fontSize: '13px',
+                        color: '#94a3b8'
+                      }}>
+                        <strong style={{ color: '#e0e7ff' }}>Notes:</strong> {prop.notes}
+                      </div>
+                    )}
+
+                    <div style={{
+                      marginTop: '16px',
+                      height: '8px',
+                      background: 'rgba(30, 41, 59, 0.5)',
+                      borderRadius: '4px',
+                      overflow: 'hidden'
+                    }}>
+                      <div style={{
+                        height: '100%',
+                        width: `${prop.winProbability}%`,
+                        background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
+                        transition: 'width 0.5s ease'
+                      }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Modals */}
+        {showModal === 'opportunity' && (
+          <OpportunityModal
+            onClose={() => setShowModal(null)}
+            onSubmit={addOpportunity}
+          />
+        )}
+
+        {showModal === 'subcontractor' && (
+          <SubcontractorModal
+            onClose={() => setShowModal(null)}
+            onSubmit={addSubcontractor}
+          />
+        )}
+
+        {showModal === 'proposal' && (
+          <ProposalModal
+            onClose={() => setShowModal(null)}
+            onSubmit={addProposal}
+            opportunities={opportunities}
+            subcontractors={subcontractors}
+          />
+        )}
+
+        {showModal?.type === 'viewOpp' && (
+          <ViewModal
+            title="Opportunity Details"
+            data={showModal.data}
+            onClose={() => setShowModal(null)}
+          />
+        )}
+
+        {showModal?.type === 'viewSub' && (
+          <ViewModal
+            title="Subcontractor Details"
+            data={showModal.data}
+            onClose={() => setShowModal(null)}
+          />
+        )}
+
+        {showModal?.type === 'viewProposal' && (
+          <ViewModal
+            title="Proposal Details"
+            data={showModal.data}
+            onClose={() => setShowModal(null)}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Helper Components
+const MetricCard = ({ icon: Icon, label, value, color, delay }) => (
+  <div className="metric-card" style={{
+    background: 'rgba(15, 23, 42, 0.8)',
+    backdropFilter: 'blur(20px)',
+    borderRadius: '16px',
+    padding: '24px',
+    border: '1px solid rgba(99, 102, 241, 0.2)',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+    opacity: 0
+  }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+      <div style={{
+        width: '48px',
+        height: '48px',
+        borderRadius: '12px',
+        background: `linear-gradient(135deg, ${color}40 0%, ${color}20 100%)`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <Icon size={24} style={{ color }} />
+      </div>
+      <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '600' }}>
+        {label}
+      </div>
+    </div>
+    <div style={{ fontSize: '32px', fontWeight: '700', color: '#e0e7ff' }}>
+      {value}
+    </div>
+  </div>
+);
+
+const DataCard = ({ title, icon: Icon, children }) => (
+  <div style={{
+    background: 'rgba(15, 23, 42, 0.8)',
+    backdropFilter: 'blur(20px)',
+    borderRadius: '16px',
+    padding: '24px',
+    border: '1px solid rgba(99, 102, 241, 0.2)'
+  }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+      <Icon size={20} style={{ color: '#818cf8' }} />
+      <h3 style={{ margin: 0, color: '#e0e7ff', fontSize: '16px', fontWeight: '600' }}>{title}</h3>
+    </div>
+    {children}
+  </div>
+);
+
+const PipelineBar = ({ label, count, total, color }) => (
+  <div style={{ marginBottom: '16px' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '13px' }}>
+      <span style={{ color: '#94a3b8' }}>{label}</span>
+      <span style={{ color: '#e0e7ff', fontWeight: '600' }}>{count}</span>
+    </div>
+    <div style={{
+      height: '8px',
+      background: 'rgba(30, 41, 59, 0.5)',
+      borderRadius: '4px',
+      overflow: 'hidden'
+    }}>
+      <div style={{
+        height: '100%',
+        width: `${total > 0 ? (count / total) * 100 : 0}%`,
+        background: color,
+        transition: 'width 0.5s ease'
+      }} />
+    </div>
+  </div>
+);
+
+const StatusBadge = ({ status }) => {
+  const colors = {
+    active: { bg: 'rgba(16, 185, 129, 0.2)', text: '#10b981' },
+    tracking: { bg: 'rgba(99, 102, 241, 0.2)', text: '#6366f1' },
+    awarded: { bg: 'rgba(245, 158, 11, 0.2)', text: '#f59e0b' },
+    lost: { bg: 'rgba(239, 68, 68, 0.2)', text: '#ef4444' }
+  };
+  const style = colors[status] || colors.active;
+  
+  return (
+    <span style={{
+      padding: '4px 12px',
+      background: style.bg,
+      color: style.text,
+      borderRadius: '6px',
+      fontSize: '11px',
+      fontWeight: '600',
+      textTransform: 'uppercase'
+    }}>
+      {status}
+    </span>
+  );
+};
+
+const ProposalStatusBadge = ({ status }) => {
+  const colors = {
+    draft: { bg: 'rgba(100, 116, 139, 0.2)', text: '#64748b' },
+    submitted: { bg: 'rgba(99, 102, 241, 0.2)', text: '#6366f1' },
+    awarded: { bg: 'rgba(16, 185, 129, 0.2)', text: '#10b981' },
+    rejected: { bg: 'rgba(239, 68, 68, 0.2)', text: '#ef4444' }
+  };
+  const style = colors[status] || colors.draft;
+  
+  return (
+    <span style={{
+      padding: '4px 12px',
+      background: style.bg,
+      color: style.text,
+      borderRadius: '6px',
+      fontSize: '11px',
+      fontWeight: '600',
+      textTransform: 'uppercase'
+    }}>
+      {status}
+    </span>
+  );
+};
+
+const InfoItem = ({ icon: Icon, label, value, color }) => (
+  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <Icon size={14} style={{ color }} />
+    <span style={{ color: '#64748b', fontSize: '12px' }}>{label}:</span>
+    <span style={{ color, fontWeight: '600' }}>{value}</span>
+  </div>
+);
+
+const IconButton = ({ icon: Icon, onClick, color = '#818cf8', size = 18 }) => (
+  <button
+    onClick={onClick}
+    style={{
+      width: '32px',
+      height: '32px',
+      borderRadius: '8px',
+      border: 'none',
+      background: 'rgba(30, 41, 59, 0.5)',
+      color,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      transition: 'all 0.2s ease'
+    }}
+    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'}
+    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(30, 41, 59, 0.5)'}
+  >
+    <Icon size={size} />
+  </button>
+);
+
+// Modal Components
+const OpportunityModal = ({ onClose, onSubmit }) => {
+  const [formData, setFormData] = useState({
+    title: '',
+    agency: '',
+    naics: '',
+    setAside: 'Small Business',
+    value: '',
+    deadline: '',
+    status: 'active',
+    description: '',
+    postedDate: new Date().toISOString().split('T')[0],
+    solicitationNumber: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({ ...formData, value: parseInt(formData.value) });
+  };
+
+  return (
+    <Modal title="Add New Opportunity" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Title" required>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+          />
+        </FormField>
+
+        <FormField label="Agency" required>
+          <input
+            type="text"
+            value={formData.agency}
+            onChange={(e) => setFormData({ ...formData, agency: e.target.value })}
+            required
+          />
+        </FormField>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <FormField label="NAICS Code" required>
+            <input
+              type="text"
+              value={formData.naics}
+              onChange={(e) => setFormData({ ...formData, naics: e.target.value })}
+              required
+            />
+          </FormField>
+
+          <FormField label="Set-Aside" required>
+            <select
+              value={formData.setAside}
+              onChange={(e) => setFormData({ ...formData, setAside: e.target.value })}
+            >
+              <option>Small Business</option>
+              <option>8(a)</option>
+              <option>HUBZone</option>
+              <option>SDVOSB</option>
+              <option>WOSB</option>
+            </select>
+          </FormField>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <FormField label="Contract Value ($)" required>
+            <input
+              type="number"
+              value={formData.value}
+              onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+              required
+            />
+          </FormField>
+
+          <FormField label="Deadline" required>
+            <input
+              type="date"
+              value={formData.deadline}
+              onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+              required
+            />
+          </FormField>
+        </div>
+
+        <FormField label="Solicitation Number" required>
+          <input
+            type="text"
+            value={formData.solicitationNumber}
+            onChange={(e) => setFormData({ ...formData, solicitationNumber: e.target.value })}
+            required
+          />
+        </FormField>
+
+        <FormField label="Description" required>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+            rows={3}
+            required
+          />
+        </FormField>
+
+        <FormField label="Status">
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+          >
+            <option value="active">Active</option>
+            <option value="tracking">Tracking</option>
+          </select>
+        </FormField>
+
+        <button type="submit" style={{
+          width: '100%',
+          padding: '12px',
+          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+          border: 'none',
+          borderRadius: '8px',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          marginTop: '8px'
+        }}>
+          Add Opportunity
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
+const SubcontractorModal = ({ onClose, onSubmit }) => {
+  const [formData, setFormData] = useState({
+    name: '',
+    capabilities: '',
+    certifications: '',
+    contact: '',
+    email: '',
+    phone: '',
+    pastPerformance: 'Good',
+    rating: 4,
+    availability: 'Available',
+    naicsCodes: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      capabilities: formData.capabilities.split(',').map(c => c.trim()),
+      certifications: formData.certifications.split(',').map(c => c.trim()),
+      naicsCodes: formData.naicsCodes.split(',').map(c => c.trim())
+    });
+  };
+
+  return (
+    <Modal title="Add New Subcontractor" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Company Name" required>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            required
+          />
+        </FormField>
+
+        <FormField label="Capabilities (comma-separated)" required>
+          <input
+            type="text"
+            value={formData.capabilities}
+            onChange={(e) => setFormData({ ...formData, capabilities: e.target.value })}
+            placeholder="IT Support, Cybersecurity, Network Admin"
+            required
+          />
+        </FormField>
+
+        <FormField label="NAICS Codes (comma-separated)" required>
+          <input
+            type="text"
+            value={formData.naicsCodes}
+            onChange={(e) => setFormData({ ...formData, naicsCodes: e.target.value })}
+            placeholder="541512, 541519"
+            required
+          />
+        </FormField>
+
+        <FormField label="Certifications (comma-separated)">
+          <input
+            type="text"
+            value={formData.certifications}
+            onChange={(e) => setFormData({ ...formData, certifications: e.target.value })}
+            placeholder="ISO 9001, SOC 2"
+          />
+        </FormField>
+
+        <FormField label="Contact Person" required>
+          <input
+            type="text"
+            value={formData.contact}
+            onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+            required
+          />
+        </FormField>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <FormField label="Email" required>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
+          </FormField>
+
+          <FormField label="Phone" required>
+            <input
+              type="tel"
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              required
+            />
+          </FormField>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          <FormField label="Past Performance">
+            <select
+              value={formData.pastPerformance}
+              onChange={(e) => setFormData({ ...formData, pastPerformance: e.target.value })}
+            >
+              <option>Excellent</option>
+              <option>Good</option>
+              <option>Fair</option>
+              <option>Poor</option>
+            </select>
+          </FormField>
+
+          <FormField label="Rating">
+            <select
+              value={formData.rating}
+              onChange={(e) => setFormData({ ...formData, rating: parseInt(e.target.value) })}
+            >
+              <option value="5">5 Stars</option>
+              <option value="4">4 Stars</option>
+              <option value="3">3 Stars</option>
+              <option value="2">2 Stars</option>
+              <option value="1">1 Star</option>
+            </select>
+          </FormField>
+
+          <FormField label="Availability">
+            <select
+              value={formData.availability}
+              onChange={(e) => setFormData({ ...formData, availability: e.target.value })}
+            >
+              <option>Available</option>
+              <option>Limited</option>
+              <option>Unavailable</option>
+            </select>
+          </FormField>
+        </div>
+
+        <button type="submit" style={{
+          width: '100%',
+          padding: '12px',
+          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+          border: 'none',
+          borderRadius: '8px',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          marginTop: '8px'
+        }}>
+          Add Subcontractor
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
+const ProposalModal = ({ onClose, onSubmit, opportunities, subcontractors }) => {
+  const [formData, setFormData] = useState({
+    opportunityId: '',
+    subcontractorId: '',
+    status: 'draft',
+    createdDate: new Date().toISOString().split('T')[0],
+    winProbability: 50,
+    notes: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const opp = opportunities.find(o => o.id === formData.opportunityId);
+    onSubmit({
+      ...formData,
+      opportunityTitle: opp?.title || '',
+      submissionDeadline: opp?.deadline || '',
+      value: opp?.value || 0,
+      winProbability: parseInt(formData.winProbability)
+    });
+  };
+
+  return (
+    <Modal title="Create New Proposal" onClose={onClose}>
+      <form onSubmit={handleSubmit}>
+        <FormField label="Opportunity" required>
+          <select
+            value={formData.opportunityId}
+            onChange={(e) => setFormData({ ...formData, opportunityId: e.target.value })}
+            required
+          >
+            <option value="">Select an opportunity...</option>
+            {opportunities.map(opp => (
+              <option key={opp.id} value={opp.id}>{opp.title}</option>
+            ))}
+          </select>
+        </FormField>
+
+        <FormField label="Subcontractor" required>
+          <select
+            value={formData.subcontractorId}
+            onChange={(e) => setFormData({ ...formData, subcontractorId: e.target.value })}
+            required
+          >
+            <option value="">Select a subcontractor...</option>
+            {subcontractors.map(sub => (
+              <option key={sub.id} value={sub.id}>{sub.name}</option>
+            ))}
+          </select>
+        </FormField>
+
+        <FormField label="Status">
+          <select
+            value={formData.status}
+            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+          >
+            <option value="draft">Draft</option>
+            <option value="submitted">Submitted</option>
+          </select>
+        </FormField>
+
+        <FormField label="Win Probability (%)">
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={formData.winProbability}
+            onChange={(e) => setFormData({ ...formData, winProbability: e.target.value })}
+            style={{ width: '100%' }}
+          />
+          <div style={{ textAlign: 'center', color: '#818cf8', fontWeight: '600', marginTop: '8px' }}>
+            {formData.winProbability}%
+          </div>
+        </FormField>
+
+        <FormField label="Notes">
+          <textarea
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            rows={3}
+            placeholder="Add any relevant notes about this proposal..."
+          />
+        </FormField>
+
+        <button type="submit" style={{
+          width: '100%',
+          padding: '12px',
+          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+          border: 'none',
+          borderRadius: '8px',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          marginTop: '8px'
+        }}>
+          Create Proposal
+        </button>
+      </form>
+    </Modal>
+  );
+};
+
+const ViewModal = ({ title, data, onClose }) => (
+  <Modal title={title} onClose={onClose}>
+    <div style={{
+      background: 'rgba(30, 41, 59, 0.5)',
+      borderRadius: '8px',
+      padding: '20px',
+      maxHeight: '500px',
+      overflowY: 'auto'
+    }}>
+      <pre style={{
+        color: '#e0e7ff',
+        fontSize: '13px',
+        lineHeight: '1.6',
+        margin: 0,
+        fontFamily: '"JetBrains Mono", monospace',
+        whiteSpace: 'pre-wrap',
+        wordWrap: 'break-word'
+      }}>
+        {JSON.stringify(data, null, 2)}
+      </pre>
+    </div>
+  </Modal>
+);
+
+const Modal = ({ title, children, onClose }) => (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.8)',
+    backdropFilter: 'blur(8px)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+    padding: '20px'
+  }} onClick={onClose}>
+    <div style={{
+      background: 'rgba(15, 23, 42, 0.95)',
+      borderRadius: '16px',
+      border: '1px solid rgba(99, 102, 241, 0.3)',
+      maxWidth: '600px',
+      width: '100%',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+      boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)'
+    }} onClick={(e) => e.stopPropagation()}>
+      <div style={{
+        padding: '24px',
+        borderBottom: '1px solid rgba(99, 102, 241, 0.2)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <h2 style={{ margin: 0, color: '#e0e7ff', fontSize: '18px', fontWeight: '600' }}>{title}</h2>
+        <button onClick={onClose} style={{
+          background: 'none',
+          border: 'none',
+          color: '#94a3b8',
+          cursor: 'pointer',
+          padding: '4px'
+        }}>
+          <X size={24} />
+        </button>
+      </div>
+      <div style={{ padding: '24px' }}>
+        {children}
+      </div>
+    </div>
+  </div>
+);
+
+const FormField = ({ label, children, required }) => (
+  <div style={{ marginBottom: '20px' }}>
+    <label style={{
+      display: 'block',
+      marginBottom: '8px',
+      color: '#94a3b8',
+      fontSize: '13px',
+      fontWeight: '600',
+      textTransform: 'uppercase'
+    }}>
+      {label} {required && <span style={{ color: '#ef4444' }}>*</span>}
+    </label>
+    <div style={{
+      '& input, & select, & textarea': {
+        width: '100%',
+        padding: '10px 12px',
+        background: 'rgba(30, 41, 59, 0.5)',
+        border: '1px solid rgba(99, 102, 241, 0.2)',
+        borderRadius: '8px',
+        color: '#e0e7ff',
+        fontSize: '14px',
+        fontFamily: 'inherit'
+      }
+    }}>
+      {React.cloneElement(children, {
+        style: {
+          width: '100%',
+          padding: '10px 12px',
+          background: 'rgba(30, 41, 59, 0.5)',
+          border: '1px solid rgba(99, 102, 241, 0.2)',
+          borderRadius: '8px',
+          color: '#e0e7ff',
+          fontSize: '14px',
+          fontFamily: 'inherit',
+          ...children.props.style
+        }
+      })}
+    </div>
+  </div>
+);
+
+export default GovConSystem;
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<GovConSystem />);
+    </script>
+</body>
+</html>
